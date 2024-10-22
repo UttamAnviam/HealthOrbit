@@ -27,12 +27,11 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-
     def create(self, request, *args, **kwargs):
-        doctor_id = request.data.get('doctor_id')  # Changed to doctor_id
+        doctor_id = request.data.get('doctor_id')
         doctor_name = request.data.get('doctor_name')
         content = request.data.get('content')
-        uploaded_files = request.FILES.getlist('files')
+        uploaded_files = request.FILES.getlist('uploaded_files')  # Change 'files' to 'uploaded_files'
 
         uploaded_file_names = []
 
@@ -53,6 +52,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         new_thread.save()
 
         return Response({"message": "Thread created successfully!", "thread_id": str(new_thread.thread_id)}, status=status.HTTP_201_CREATED)
+
 
     def list(self, request, *args, **kwargs):
         """Get All Threads"""

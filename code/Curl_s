@@ -46,7 +46,7 @@ curl -X POST http://localhost:8000/threads/<thread_id>/query/ \
 
 
 Continue Chat in an Existing Thread
-curl -X POST http://localhost:8000/threads/<thread_id>/continue-chat/ \
+curl -X POST http://localhost:8000/api/threads/<thread_id>/continue-chat/ \
 -H "Content-Type: multipart/form-data" \
 -F "query=What else can you tell me about this case?" \
 -F "files=@/path/to/another/uploaded/file.pdf"
