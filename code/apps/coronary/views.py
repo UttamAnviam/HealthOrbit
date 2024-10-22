@@ -1,15 +1,16 @@
 import csv
 import pandas as pd
 import PyPDF2
-import openai
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.files.storage import default_storage
+import requests
 
-# Set your OpenAI API key
-openai.api_key = "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"  # Replace with your actual OpenAI API key
+# Azure OpenAI settings
+AZURE_OPENAI_ENDPOINT = "https://healthorbitaidev210772056557.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-03-15-preview"
+AZURE_OPENAI_API_KEY = "949ef1d4da1a44759286a068bb4aef87"  # Replace with your actual Azure API key
 
 class FileUploadView(View):
     @method_decorator(csrf_exempt)  # Exempt from CSRF for testing
@@ -86,19 +87,25 @@ class FileUploadView(View):
 
     def query_pdf_content(self, chunk_text, query):
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
+            headers = {
+                "Content-Type": "application/json",
+                "api-key": AZURE_OPENAI_API_KEY
+            }
+            body = {
+                "messages": [
                     {
                         "role": "user",
                         "content": f"Analyze the following document: {chunk_text}. Based on this text, answer the question: {query}."
                     }
                 ]
-            )
-            return response['choices'][0]['message']['content']
+            }
+            response = requests.post(AZURE_OPENAI_ENDPOINT, headers=headers, json=body)
+            response.raise_for_status()
+            result = response.json()
+            return result['choices'][0]['message']['content']
         except Exception as e:
-            print(f"Error querying OpenAI API: {e}")
-            return f"Error querying OpenAI API: {e}"
+            print(f"Error querying Azure OpenAI API: {e}")
+            return f"Error querying Azure OpenAI API: {e}"
 
     def query_pdf_content_in_chunks(self, combined_text, query):
         chunks = self.split_text_into_chunks(combined_text)
@@ -110,6 +117,6 @@ class FileUploadView(View):
 
         combined_response = "\n".join(responses)
 
-        # Final query to OpenAI API to summarize combined responses
+        # Final query to Azure OpenAI API to summarize combined responses
         final_response = self.query_pdf_content(combined_response, "generate a final report based on the provided text.")
         return final_response
