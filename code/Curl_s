@@ -1,0 +1,52 @@
+. Create a New Thread
+curl -X POST http://localhost:8000/threads/ \
+-H "Content-Type: application/json" \
+-d '{
+    "doctor_name": "Dr. Smith",
+    "doctor_id": "doctor_456",
+    "content": "Initial consultation notes.",
+    "uploaded_files": [
+        "/path/to/uploaded/file1.pdf",
+        "/path/to/uploaded/file2.txt"
+    ]
+}'
+
+
+
+Get All Threads
+curl -X GET http://localhost:8000/threads/ \
+-H "Accept: application/json"
+
+
+Get a Thread by ID
+curl -X GET http://localhost:8000/threads/<thread_id>/ \
+-H "Accept: application/json"
+
+
+
+Update a Thread
+curl -X PATCH http://localhost:8000/threads/<thread_id>/ \
+-H "Content-Type: application/json" \
+-d '{
+    "content": "Updated content of the thread."
+}'
+
+
+Delete a Thread
+curl -X DELETE http://localhost:8000/threads/<thread_id>/ \
+-H "Accept: application/json"
+
+
+Query Uploaded Files in a Thread
+curl -X POST http://localhost:8000/threads/<thread_id>/query/ \
+-H "Content-Type: application/json" \
+-d '{
+    "query": "What is the diagnosis based on the uploaded files?"
+}'
+
+
+Continue Chat in an Existing Thread
+curl -X POST http://localhost:8000/threads/<thread_id>/continue-chat/ \
+-H "Content-Type: multipart/form-data" \
+-F "query=What else can you tell me about this case?" \
+-F "files=@/path/to/another/uploaded/file.pdf"
