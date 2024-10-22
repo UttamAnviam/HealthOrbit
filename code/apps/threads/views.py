@@ -31,6 +31,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         doctor_id = request.data.get('doctor_id')
         doctor_name = request.data.get('doctor_name')
         content = request.data.get('content')
+        thread_name=request.data.get('thread_name')
         uploaded_files = request.FILES.getlist('uploaded_files')  # Change 'files' to 'uploaded_files'
 
         uploaded_file_names = []
@@ -45,6 +46,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         new_thread = Thread(
             doctor_name=doctor_name,
+            thread_name=thread_name,
             doctor_id=doctor_id,
             content=content,
             uploaded_files=uploaded_file_names
@@ -55,10 +57,15 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
 
     def list(self, request, *args, **kwargs):
-        """Get All Threads"""
-        threads = self.queryset
+        """Get All Threads or Filter by doctor_id"""
+        doctor_id = request.query_params.get('doctor_id')  # Get doctor_id from query parameters
+        if doctor_id:
+            threads = Thread.objects.filter(doctor_id=doctor_id)  # Filter by doctor_id if present
+        else:
+            threads = Thread.objects.all()  # Return all threads if no doctor_id is provided
         serializer = self.get_serializer(threads, many=True)
         return Response(serializer.data)
+
 
     def retrieve(self, request, *args, **kwargs):
         """Get a Thread by ID"""
