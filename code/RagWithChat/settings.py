@@ -136,7 +136,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://sub.example.com",
     "http://localhost:8080",
     "http://127.0.0.1:8000",
-    "http://localhost:4200"
+    "http://localhost:4200",
+    "https://stage-portal.healthorbit.ai"
+
 ]
 
 # Azure OpenAI settings
