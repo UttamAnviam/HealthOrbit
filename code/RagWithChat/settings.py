@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f!feni%^op&cxf$@am8^0st(4so3uc_%u64!r0_+m0hx3)*&zf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -138,3 +138,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:4200"
 ]
+
+# Azure OpenAI settings
+AZURE_OPENAI_ENDPOINT = "https://healthorbitaidev210772056557.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-03-15-preview"
+AZURE_OPENAI_API_KEY = "949ef1d4da1a44759286a068bb4aef87"  # Replace with your actual Azure API key
