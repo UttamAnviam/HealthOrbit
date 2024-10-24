@@ -418,3 +418,70 @@ class QueryView(View):
     def format_result(self, result, query):
         # You can implement your custom formatting here
         return [row[0] for row in result]  # Returning names as a list
+
+
+
+
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReferralSummaryView(View):
+    def post(self, request):
+        doctor_id = request.POST.get('doctor_id')
+        patient_id = request.POST.get('patient_id')
+
+        if not doctor_id or not patient_id:
+            return JsonResponse({'error': 'Both doctor_id and patient_id are required.'}, status=400)
+
+        # Retrieve SOAP notes for the patient (implement this based on your existing setup)
+        soap_notes = self.get_soap_notes(patient_id)
+        if not soap_notes:
+            return JsonResponse({'error': 'No SOAP notes found for the specified patient.'}, status=404)
+
+        # Generate the referral letter using Azure OpenAI
+        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\nsummary: {soap_notes}\n\nBased on the above SOAP notes, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the SOAP note.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off."
+
+        referral_summary = self.query_azure_openai(prompt)
+
+        # Save the summary to the existing database table
+        self.save_summary_to_db(doctor_id, patient_id, referral_summary)
+
+        return JsonResponse({'summary': referral_summary})
+
+    def get_soap_notes(self, patient_id):
+        # Implement the logic to retrieve SOAP notes based on patient_id
+        with connections['mysql_db'].cursor() as cursor:
+            cursor.execute("SELECT * FROM patient_personal_details WHERE patient_id = %s", [patient_id])
+            result = cursor.fetchone()
+        return result[0] if result else None
+
+    def save_summary_to_db(self, doctor_id, patient_id, summary):
+        with connections['mysql_db'].cursor() as cursor:
+            try:
+                cursor.execute(
+                    "INSERT INTO referral_summaries (doctor_id, patient_id, summary) VALUES (%s, %s, %s)",
+                    [doctor_id, patient_id, summary]
+                )
+            except Exception as e:
+                return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
+
+    def query_azure_openai(self, prompt):
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": AZURE_OPENAI_API_KEY,
+        }
+        
+        data = {
+            "messages": [
+                {"role": "system", "content": "You are a helpful medical assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+
+        try:
+            response = requests.post(AZURE_OPENAI_ENDPOINT, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            return str(e)

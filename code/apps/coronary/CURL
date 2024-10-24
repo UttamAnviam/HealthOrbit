@@ -1,2 +1,9 @@
  -X POST http://127.0.0.1:8000/api/api/upload_and_query/ -F "files=@/home/asus/Desktop/HealthOrbit/code/mri.pdf"
   -F "files=@/home/asus/Desktop/HealthOrbit/code/Toxicology.pdf" -F "query=generate coronary reports?"
+
+
+
+# For Query to database
+curl -X POST http://localhost0:8000/api/api/query/ -d "question=give me all patient names where doctor_id=145" -d "doctor_id=145"
+
+
