@@ -1,14 +1,12 @@
 import os
 import PyPDF2
-import requests  # Use requests to call Azure OpenAI
+import requests
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Thread
 from .serializers import ThreadSerializer
 
-
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,33 +14,125 @@ load_dotenv()
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 
-print(AZURE_OPENAI_ENDPOINT)
-
-
 UPLOAD_DIR = "uploaded_files"
 
 # Ensure the upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+CORONER_REPORT_TEMPLATE = """generate a final report.if asked to generate a coroner's report , generate it in a detailed coroner  format with proper explanation 
+                                       General principles
+The report should be a detailed factual account, based on the
+medical records and your knowledge of the deceased.
+• Include your full name and qualifications (Bachelor of Medicine
+rather than MB).
+• Describe your status at the time you saw the patient (eg, GP
+registrar or consultant surgeon for 10 years).
+• Type your report on headed paper where possible using full,
+grammatically correct sentences.
+• Divide your report up into clear paragraphs. Numbering paragraphs
+may make it easier to refer to sections of your report in case you're
+asked to give evidence.
+What to include
+Be specific about your contact with the patient. For example, did
+you see the patient on the NHS or privately?
+Where appropriate, say if you saw the patient alone or with
+someone else during each consultation. Give the name and status
+of the other person (eg, spouse, mother, social worker).
+Style
+If you're ever
+asked to write a
+coroner's report,
+it's important to
+know what to
+include.
+21 July 2022
+The report should stand on its own
+Don't assume the reader has any knowledge of the case. Several
+people may have to read the report apart from the coroner and they
+may not have access to or be able to interpret the medical records.
+Write in the first person
+The reader should have a good idea of who did what, why, when, to
+whom, and how you know this occurred. Be precise and explicit.
+• Example: instead of writing, 'The patient was examined again later
+in the day' - it's more helpful to say, 'I remember asking my
+registrar, Dr Jane Smith, to examine the patient again later on the
+same day, which, according to the notes, she did at [time].'
+Concentrate on your observations and understanding
+Provide a detailed account of your interaction with the patient
+including the history you were given, what examination took place
+and what your clinical findings were. Include any relevant negative
+findings. Give an account of your differential diagnosis,
+management plan and any safety netting advice that was given.
+Avoid jargon or medical abbreviations
+Your report will be read by those with no medical knowledge. All
+medical terms are best written in full, avoiding abbreviations and
+technical language, if possible. If you have to use abbreviations or medical terms, explain these. If you mention a drug, give an idea of
+what type of drug it is and why it was prescribed. Give the full
+generic name, dosage and route of administration.
+• Example: many lay people might be familiar with abbreviating blood
+pressure to 'BP'. But 'SOB' for 'shortness of breath' is less common,
+and could be misinterpreted.
+Clinical notes
+Give a factual chronology of events as you saw them, referring
+to the clinical notes whenever you can. Describe each and every
+relevant consultation or phone contact in turn and include your
+working diagnosis or your differential diagnoses.
+Outline any hospital referrals, identifying the name of the relevant
+practitioner or consultant.
+The coroner will often require disclosure of the whole medical
+record. You should also ensure you have had access to the full
+medical record when preparing your report.
+The absence of an entry may be important. Just as negative
+findings are often important in clinical reports, with a coroner's
+report it's important to think about what's not included, as well as
+what is.
+• Example: you're reporting on a case of a child who has died. The
+pathologist finds healed fractures at post-mortem, but the notes
+don't indicate that the parents sought medical advice for these
+injuries. This raises the question of non-accidental injury and could
+have serious and immediate implications for surviving children in the family.
+Say what you found, but also what you looked for and failed to
+find. If you failed to put yourself in a position to make an adequate
+assessment, your evidence could be challenged. If your report
+clearly demonstrates that your history and examination were
+thorough, you are less likely to be called to explain your evidence at
+an inquest.
+Specify what the different details of your account are based
+on. This could be your memory, the contemporaneous notes you or
+others wrote, or your usual or normal practice. A coroner won't
+expect you to make notes of every last detail, or to remember every
+aspect of a consultation that at the time appeared to be routine. It's
+perfectly acceptable to quote from memory, making it clear that this
+is what you're doing or explaining what your normal practice would be under those circumstances.
+Identify any other clinician involved in the care of the
+deceased by their full name and professional status. Describe your
+understanding of what they did and the conclusions they reached
+based on your own knowledge or the clinical notes. You should not,
+however, comment on the adequacy or otherwise of their
+performance."""
+
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
+
     def create(self, request, *args, **kwargs):
         doctor_id = request.data.get('doctor_id')
         doctor_name = request.data.get('doctor_name')
         content = request.data.get('content')
-        thread_name=request.data.get('thread_name')
-        uploaded_files = request.FILES.getlist('uploaded_files')  # Change 'files' to 'uploaded_files'
+        thread_name = request.data.get('thread_name')
+        uploaded_files = request.FILES.getlist('uploaded_files')  
 
         uploaded_file_names = []
-
         for uploaded_file in uploaded_files:
             file_location = os.path.join(UPLOAD_DIR, uploaded_file.name)
             with open(file_location, 'wb+') as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
-
             uploaded_file_names.append(file_location)
+
+        # Check if the content contains "coroner" or "coronery" and if more than one file is uploaded
+        if len(uploaded_file_names) > 1 and ('coroner' in content.lower() or 'coronery' in content.lower()):
+            content = CORONER_REPORT_TEMPLATE  # Use the coroner report template if conditions are met
 
         new_thread = Thread(
             doctor_name=doctor_name,
@@ -54,7 +144,6 @@ class ThreadViewSet(viewsets.ModelViewSet):
         new_thread.save()
 
         return Response({"message": "Thread created successfully!", "thread_id": str(new_thread.thread_id)}, status=status.HTTP_201_CREATED)
-
 
     def list(self, request, *args, **kwargs):
         """Get All Threads or Filter by doctor_id"""
@@ -104,9 +193,13 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 combined_text += self.extract_text_from_pdf(file_path) + "\n"
             elif file_path.lower().endswith('.txt'):
                 combined_text += self.extract_text_from_txt(file_path) + "\n"
-            # Add other file types here (e.g., .csv, .xlsx) as needed
 
+        # Query the Azure OpenAI API
         response = self.query_pdf_content_in_chunks(combined_text, query_text)
+
+        # Save the question and answer to the thread's messages
+        thread.messages.append({"question": query_text, "answer": response})
+        thread.save()
 
         return Response({"query": query_text, "answer": response}, status=status.HTTP_200_OK)
 
@@ -141,9 +234,13 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         # Append the combined text to the existing content of the thread
         thread.content += "\n" + combined_text
-        thread.save()
 
+        # Query the Azure OpenAI API
         response = self.query_pdf_content_in_chunks(thread.content, query_text)
+
+        # Save the question and answer to the thread's messages
+        thread.messages.append({"question": query_text, "answer": response})
+        thread.save()
 
         return Response({"query": query_text, "answer": response}, status=status.HTTP_200_OK)
 
