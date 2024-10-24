@@ -152,3 +152,8 @@ CORS_ALLOWED_ORIGINS = [
 # Azure OpenAI settings
 AZURE_OPENAI_ENDPOINT = "https://healthorbitaidev210772056557.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-03-15-preview"
 AZURE_OPENAI_API_KEY = "949ef1d4da1a44759286a068bb4aef87"  # Replace with your actual Azure API key
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS':    
+         'RagWithChat.pagination.CustomPagination'
+}

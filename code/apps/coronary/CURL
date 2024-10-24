@@ -4,6 +4,6 @@
 
 
 # For Query to database
-curl -X POST http://localhost0:8000/api/api/query/ -d "question=give me all patient names where doctor_id=145" -d "doctor_id=145"
+curl -X POST http://localhost:8000/api/api/query/ -d "question=give me all patient names where doctor_id=145" -d "doctor_id=145"
 
 

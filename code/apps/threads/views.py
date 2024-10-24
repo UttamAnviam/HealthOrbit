@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Thread
 from .serializers import ThreadSerializer
-
+from RagWithChat.pagination import CustomPagination
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -114,7 +114,8 @@ performance."""
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-
+    pagination_class = CustomPagination
+    
     def create(self, request, *args, **kwargs):
         doctor_id = request.data.get('doctor_id')
         doctor_name = request.data.get('doctor_name')

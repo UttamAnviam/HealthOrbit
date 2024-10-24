@@ -22,5 +22,5 @@ class Thread(models.Model):
         
     
     
-# class Patient(models.Model):
+
     
