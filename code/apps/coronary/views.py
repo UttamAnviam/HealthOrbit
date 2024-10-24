@@ -239,3 +239,182 @@ def upload_and_query(request):
         return JsonResponse({"query": query, "answer": answer})
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+
+
+
+# views.py
+import requests
+from django.http import JsonResponse
+from django.views import View
+from django.db import connections
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+# Azure OpenAI settings
+AZURE_OPENAI_ENDPOINT = "https://healthorbitaidev210772056557.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-03-15-preview"
+AZURE_OPENAI_API_KEY = "949ef1d4da1a44759286a068bb4aef87"
+
+# Schema information for the database
+schema_info = """
+You are an SQL expert. Please consider the following database schema for health management:
+
+1. **Consultations Table**:
+   - **Table Name**: `consultations`
+   - **Columns**:
+     - `id`: BIGINT UNSIGNED, not null
+     - `patient_model_id`: BIGINT UNSIGNED, not null
+     - `position`: INT, not null
+     - `created_by_id`: BIGINT UNSIGNED, not null
+     - `created_at`: TIMESTAMP, nullable
+     - `updated_at`: TIMESTAMP, nullable
+
+2. **Patients Files Table**:
+   - **Table Name**: `patients_files`
+   - **Columns**:
+     - `id`: BIGINT UNSIGNED, not null
+     - `session_model_id`: BIGINT UNSIGNED, nullable
+     - `patient_id`: BIGINT UNSIGNED, nullable
+     - `audio_file`: VARCHAR(255), nullable
+     - `type_id`: INT, not null, default '0'
+     - `state_id`: INT, not null, default '1'
+     - `base_path`: VARCHAR(255), nullable
+     - `disk`: VARCHAR(255), nullable
+     - `path`: VARCHAR(255), nullable
+     - `size`: BIGINT UNSIGNED, nullable
+     - `uuid`: CHAR(36), nullable
+     - `created_at`: TIMESTAMP, nullable
+     - `updated_at`: TIMESTAMP, nullable
+
+3. **Patient Personal Details Table**:
+   - **Table Name**: `patient_personal_details`
+   - **Columns**:
+     - `id`: BIGINT UNSIGNED, not null
+     - `uuid`: VARCHAR(255), nullable
+     - `patient_id`: VARCHAR(255), not null
+     - `name`: VARCHAR(255), not null
+     - `age`: INT, nullable
+     - `height`: INT, nullable
+     - `weight`: INT, nullable
+     - `avatar`: VARCHAR(255), nullable
+     - `blood`: VARCHAR(255), nullable
+     - `gender`: VARCHAR(255), not null
+     - `date`: VARCHAR(255), nullable
+     - `location`: VARCHAR(255), not null
+     - `patient_type`: INT, nullable
+     - `symptoms`: LONGTEXT, not null
+     - `note`: LONGTEXT, nullable
+     - `time_slot`: VARCHAR(255), nullable
+     - `current_medication`: VARCHAR(255), nullable
+     - `policy_enrolled`: VARCHAR(255), nullable
+     - `doctor_id`: INT, nullable
+     - `organisation_id`: BIGINT UNSIGNED, nullable
+     - `assign_to`: INT, nullable
+     - `created_by_id`: INT, nullable
+     - `created_at`: TIMESTAMP, nullable
+     - `updated_at`: TIMESTAMP, nullable
+     - `deleted_at`: TIMESTAMP, nullable
+     - `session_type`: INT, nullable
+
+4. **Sessions Table**:
+   - **Table Name**: `sessions`
+   - **Columns**:
+     - `id`: BIGINT UNSIGNED, not null
+     - `consultation_model_id`: BIGINT UNSIGNED, not null
+     - `symptoms`: LONGTEXT, nullable
+     - `session_id`: VARCHAR(255), not null
+     - `session_type`: VARCHAR(255), not null
+     - `session_state`: INT, not null
+     - `created_by_id`: BIGINT UNSIGNED, not null
+     - `created_at`: TIMESTAMP, nullable
+     - `updated_at`: TIMESTAMP, nullable
+
+5. **Transcriptions Table**:
+   - **Table Name**: `transcriptions`
+   - **Columns**:
+     - `id`: BIGINT UNSIGNED, not null
+     - `created_by_id`: BIGINT UNSIGNED, not null
+     - `session_model_id`: BIGINT UNSIGNED, nullable
+     - `prompt_id`: BIGINT UNSIGNED, nullable
+     - `language_code`: TEXT, nullable
+     - `language_detect`: VARCHAR(255), nullable
+     - `patient_file_id`: BIGINT UNSIGNED, nullable
+     - `transcription`: LONGTEXT, nullable
+     - `summary`: LONGTEXT, nullable
+     - `translated_summary`: LONGTEXT, nullable
+     - `mcd_codes`: TEXT, nullable
+     - `citation_segments`: LONGTEXT, nullable
+     - `translated_citations`: TEXT, nullable
+     - `optimized_response_json`: LONGTEXT, nullable
+     - `translated_transcript`: LONGTEXT, nullable
+     - `optimized_transcript`: LONGTEXT, nullable
+     - `translated_optimized_transcript`: LONGTEXT, nullable
+     - `modify_transcript`: VARCHAR(255), nullable
+     - `state_id`: INT, nullable
+     - `type`: INT, nullable
+     - `session_type`: INT, nullable
+     - `exception`: LONGTEXT, nullable
+     - `created_at`: TIMESTAMP, nullable
+     - `updated_at`: TIMESTAMP, nullable
+     - `note`: LONGTEXT, nullable
+     - `conversation_type`: INT, nullable
+"""
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class QueryView(View):
+    def post(self, request):
+        question = request.POST.get('question')
+        doctor_id = request.POST.get('doctor_id')
+
+        if not question or not doctor_id:
+            return JsonResponse({'error': 'Both question and doctor_id are required.'}, status=400)
+
+        # Generate the SQL query using Azure OpenAI
+        prompt = f"{schema_info} {question}. Only return results where doctor_id = '{doctor_id}'."
+        sql_query = self.query_azure_openai(prompt)
+
+        # Log the SQL query for debugging
+        print(f"Generated SQL Query: {sql_query}")  # Debugging output
+
+        # Execute the SQL query
+        with connections['mysql_db'].cursor() as cursor:
+            try:
+                cursor.execute(sql_query)
+                result = cursor.fetchall()
+            except Exception as e:
+                return JsonResponse({'error': f'Database query execution failed: {str(e)}'}, status=500)
+
+        if not result:
+            return JsonResponse({'error': 'No results found.'}, status=404)
+
+        # Format the result (custom formatting can be added)
+        formatted_response = self.format_result(result, sql_query)
+
+        return JsonResponse({'response': formatted_response})
+
+    def query_azure_openai(self, prompt):
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": AZURE_OPENAI_API_KEY,
+        }
+        
+        # Update the prompt to ensure only the SQL query is returned without any explanations or formatting
+        data = {
+            "messages": [
+                {"role": "system", "content": "You are a helpful SQL assistant."},
+                {"role": "user", "content": f"{prompt}\n\nProvide only the SQL query without any explanations or formatting, and do not include code block indicators."}
+            ]
+        }
+
+        try:
+            response = requests.post(AZURE_OPENAI_ENDPOINT, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            return str(e)
+
+    def format_result(self, result, query):
+        # You can implement your custom formatting here
+        return [row[0] for row in result]  # Returning names as a list

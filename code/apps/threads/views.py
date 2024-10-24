@@ -189,3 +189,6 @@ class ThreadViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(f"Error querying Azure OpenAI API: {e}")
             return f"Error querying Azure OpenAI API: {e}"
+
+
+

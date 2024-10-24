@@ -82,6 +82,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'mysql_db': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'health_orbit',
+        'USER': 'debian-sys-maint',
+        'PASSWORD': 'BnnUaJkxSZy3sReB',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
