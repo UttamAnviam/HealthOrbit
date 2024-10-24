@@ -129,7 +129,10 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
             uploaded_file_names.append(file_location)
-
+        
+        if ('coroner' in content.lower() or 'coronery' in content.lower()) and len(uploaded_file_names) == 0:
+            return Response({"message": "Please upload the necessary documents for generating a coroner's report."}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Check if the content contains "coroner" or "coronery" and if more than one file is uploaded
         if len(uploaded_file_names) > 1 and ('coroner' in content.lower() or 'coronery' in content.lower()):
             content = CORONER_REPORT_TEMPLATE  # Use the coroner report template if conditions are met
