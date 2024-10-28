@@ -2,6 +2,7 @@
 
 from django.db import models
 import uuid
+from django.utils.timezone import now
 
 class Thread(models.Model):
     thread_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -11,6 +12,7 @@ class Thread(models.Model):
     content = models.TextField()
     uploaded_files = models.JSONField(default=list)  
     messages = models.JSONField(default=list)  
+    created_date = models.DateTimeField(default=now, editable=False)
     
 
     def __str__(self):

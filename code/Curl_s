@@ -1,15 +1,13 @@
 . Create a New Thread
 curl -X POST http://localhost:8000/api/threads/ \
--H "Content-Type: application/json" \
--d '{
-    "doctor_name": "Dr. Smith",
-    "doctor_id": "doctor_456",
-    "content": "Initial consultation notes.",
-    "uploaded_files": [
-        "/path/to/uploaded/file1.pdf",
-        "/path/to/uploaded/file2.txt"
-    ]
-}'
+-H "Content-Type: multipart/form-data" \
+-F "doctor_name=Dr. Smith" \
+-F "doctor_id=doctor_456" \
+-F "content=Initial consultation notes." \
+-F "uploaded_files=@/home/asus/Desktop/HealthOrbit/code/Toxicology.pdf" \
+-F "uploaded_files=@/home/asus/Desktop/HealthOrbit/code/BloodReport.pdf" \
+-F "uploaded_files=@/home/asus/Desktop/HealthOrbit/code/ECG.pdf"
+
 
 
 

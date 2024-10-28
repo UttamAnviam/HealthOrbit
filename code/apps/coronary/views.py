@@ -424,23 +424,32 @@ class QueryView(View):
 
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class ReferralSummaryView(View):
     def post(self, request):
-        doctor_id = request.POST.get('doctor_id')
-        patient_id = request.POST.get('patient_id')
+        print("Incoming POST data:", request.POST)
 
+        # Retrieve doctor_id and patient_id from the POST data
+        doctor_id = request.POST.get('created_by_id')
+        patient_id = request.POST.get('session_model_id')
+
+        # Print the retrieved values for debugging
+        print(doctor_id, '.-------', patient_id)
+        
         if not doctor_id or not patient_id:
             return JsonResponse({'error': 'Both doctor_id and patient_id are required.'}, status=400)
 
-        # Retrieve SOAP notes for the patient (implement this based on your existing setup)
+        # Retrieve SOAP notes for the patient
         soap_notes = self.get_soap_notes(patient_id)
         if not soap_notes:
             return JsonResponse({'error': 'No SOAP notes found for the specified patient.'}, status=404)
 
+        # Check if the retrieved SOAP notes are meaningful
+        if not self.is_meaningful(soap_notes):
+            return JsonResponse({'error': 'The provied  contain meaningful information.'}, status=400)
+
         # Generate the referral letter using Azure OpenAI
-        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\nsummary: {soap_notes}\n\nBased on the above SOAP notes, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the SOAP note.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off."
+        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off."
 
         referral_summary = self.query_azure_openai(prompt)
 
@@ -449,20 +458,34 @@ class ReferralSummaryView(View):
 
         return JsonResponse({'summary': referral_summary})
 
+    def is_meaningful(self, text):
+        # Basic check for meaningful content; you can enhance this with more sophisticated checks if needed
+        if len(text.split()) < 3 or all(word == 'you' for word in text.split()):
+            return False
+        return True
+
     def get_soap_notes(self, patient_id):
-        # Implement the logic to retrieve SOAP notes based on patient_id
+        print(patient_id, '----patient_id')
         with connections['mysql_db'].cursor() as cursor:
-            cursor.execute("SELECT * FROM patient_personal_details WHERE patient_id = %s", [patient_id])
+            cursor.execute("SELECT transcription FROM transcriptions WHERE session_model_id = %s", [patient_id])
             result = cursor.fetchone()
-        return result[0] if result else None
+            print(result, '-------result')
+        if result:
+            return result[0]  # Return the transcription text
+        else:
+            return None  # Return None if no transcription is found
+
+
 
     def save_summary_to_db(self, doctor_id, patient_id, summary):
         with connections['mysql_db'].cursor() as cursor:
             try:
                 cursor.execute(
-                    "INSERT INTO referral_summaries (doctor_id, patient_id, summary) VALUES (%s, %s, %s)",
+                    "INSERT INTO referral_summaries (created_by_id, session_model_id, summary) VALUES (%s, %s, %s)",
                     [doctor_id, patient_id, summary]
+                    
                 )
+                print([doctor_id, patient_id, summary],'-iiii')
             except Exception as e:
                 return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
 
@@ -485,3 +508,181 @@ class ReferralSummaryView(View):
             return response.json()["choices"][0]["message"]["content"].strip()
         except Exception as e:
             return str(e)
+
+
+
+
+# -----
+@method_decorator(csrf_exempt, name='dispatch')
+class Discharge_Summary(View):
+    def post(self, request):
+        print("Incoming POST data:", request.POST)
+
+        # Retrieve doctor_id and patient_id from the POST data
+        doctor_id = request.POST.get('created_by_id')
+        patient_id = request.POST.get('session_model_id')
+
+        # Print the retrieved values for debugging
+        print("Doctor ID:", doctor_id, "Patient ID:", patient_id)
+
+        if not doctor_id or not patient_id:
+            return JsonResponse({'error': 'Both doctor_id and patient_id are required.'}, status=400)
+
+        # Retrieve SOAP notes for the patient
+        soap_notes = self.get_soap_notes(patient_id)
+        if not soap_notes:
+            return JsonResponse({'error': 'No SOAP notes found for the specified patient.'}, status=404)
+
+        # Check if the retrieved SOAP notes are meaningful
+        if not self.is_meaningful(soap_notes):
+            return JsonResponse({'error': 'The provided SOAP notes do not contain meaningful information.'}, status=400)
+
+        # Generate the discharge summary using Azure OpenAI
+        prompt = (
+            "Generate a detailed report for a patient's admission and discharge, including the following sections:\n\n"
+            "1. Admission Details\n"
+            "   - Chief Complaint: Provide a brief description of the presenting issue.\n"
+            "   - Diagnosis: State the final diagnosis or impression.\n\n"
+            "2. Treatment Provided\n"
+            "   - Interventions: List the treatments and interventions provided in the Emergency Department (ED).\n"
+            "   - Medications Administered: Detail any medications given, including dosages.\n\n"
+            "3. Results of Investigations\n"
+            "   - Pathology: Summarize key results from blood tests, urine tests, etc. (if applicable).\n"
+            "   - Imaging: Include findings from X-rays, CT scans, MRIs, etc. (if applicable).\n\n"
+            "4. Patient's Condition at Discharge\n"
+            "   - General condition at the time of discharge.\n"
+            "   - Vital Signs: Provide the latest recorded vital signs.\n\n"
+            "5. Discharge Instructions\n"
+            "   - Medications: List prescriptions given at discharge, with dosages and instructions.\n"
+            "   - Activity Level: Recommend the level of activity (if applicable).\n"
+            "   - Dietary Changes: Note any advised dietary changes or restrictions (if applicable).\n"
+            "   - Wound Care: Include instructions for wound care, if applicable.\n"
+            "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
+            "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
+        )
+
+        # Generate summary without saving to DB
+        discharge_summary = self.query_azure_openai(prompt)
+
+        # Return the summary in the response
+        return JsonResponse({'summary': discharge_summary})
+
+    def is_meaningful(self, text):
+        # Basic check for meaningful content; enhance this with more sophisticated checks if needed
+        if len(text.split()) < 3 or all(word == 'you' for word in text.split()):
+            return False
+        return True
+
+    def get_soap_notes(self, patient_id):
+        print("Fetching SOAP notes for Patient ID:", patient_id)
+        with connections['mysql_db'].cursor() as cursor:
+            cursor.execute("SELECT transcription FROM transcriptions WHERE session_model_id = %s", [patient_id])
+            result = cursor.fetchone()
+            print("SOAP notes result:", result)
+        return result[0] if result else None
+
+    def query_azure_openai(self, prompt):
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": settings.AZURE_OPENAI_API_KEY,
+        }
+        
+        data = {
+            "model": "gpt-4o",  # Specify your model here
+            "messages": [
+                {"role": "system", "content": "You are a helpful medical assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+
+        try:
+            response = requests.post(settings.AZURE_OPENAI_ENDPOINT, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"].strip()
+        except requests.exceptions.RequestException as e:
+            print("Error querying Azure OpenAI:", e)
+            return JsonResponse({'error': f'Azure OpenAI request failed: {str(e)}'}, status=500)
+
+
+
+
+
+
+from rest_framework.decorators import api_view
+
+# Optional: Import Azure Speech SDK if you plan to use speech features
+try:
+    import azure.cognitiveservices.speech as speechsdk
+except ImportError:
+    speechsdk = None
+
+
+@api_view(['POST'])
+def ai_assistant(request):
+    prompt = request.data.get('prompt')
+    use_speech = request.data.get('use_speech', False)
+
+    if not prompt:
+        return JsonResponse({"error": "Prompt is required"}, status=400)
+
+    # Call Azure OpenAI to generate response
+    azure_endpoint = "https://healthorbitaidev210772056557.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-03-15-preview"
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": "949ef1d4da1a44759286a068bb4aef87",
+    }
+
+    data = {
+        "messages": [{"role": "system", "content": "You are an assistant like Jarvis or Siri."},
+                     {"role": "user", "content": prompt}],
+        "max_tokens": 1000,
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "frequency_penalty": 0,
+        "presence_penalty": 0,
+    }
+
+    response = requests.post(azure_endpoint, headers=headers, json=data)
+
+    if response.status_code == 200:
+        result = response.json()
+        assistant_response = result['choices'][0]['message']['content']
+
+        # If speech is enabled, use text-to-speech to respond
+        if use_speech and speechsdk:
+            text_to_speech(assistant_response)
+        
+        return JsonResponse({"response": assistant_response})
+    else:
+        return JsonResponse({"error": "Failed to communicate with Azure OpenAI"}, status=response.status_code)
+
+
+# Optional: Function to convert speech to text (if speech functionality is required)
+def speech_to_text():
+    if not speechsdk:
+        return "Azure Speech SDK is not installed."
+    
+    speech_config = speechsdk.SpeechConfig(subscription="your-actual-speech-key-here", region="your-actual-region-here")
+    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
+
+    print("Say something...")
+    result = speech_recognizer.recognize_once()
+
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        return result.text
+    else:
+        return "Speech could not be recognized."
+
+
+# Optional: Function to convert text to speech (if speech functionality is required)
+def text_to_speech(text):
+    if not speechsdk:
+        return "Azure Speech SDK is not installed."
+    
+    speech_config = speechsdk.SpeechConfig(subscription="your-actual-speech-key-here", region="your-actual-region-here")
+    audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
+
+    speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+    speech_synthesizer.speak_text_async(text)
+
+
