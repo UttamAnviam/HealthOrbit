@@ -9,9 +9,13 @@ curl -X POST http://localhost:8000/api/api/query/ -d "question=give me all patie
 
 
 # For Refferal Letter 
-curl -X POST http://localhost:8000/api/api/referral-summary/ -H "Content-Type: application/x-www-form-urlencoded" -d "created_by_id=153&session_model_id=57"
+curl -X POST http://localhost:8000/api/api/referral-summary/ \
+     -H "Content-Type: application/json" \
+     -d '{"created_by_id": 153, "session_model_id": 57}'
 
 
 
 # For Discharge Summary 
-curl -X POST http://localhost:8000/api/api/discharge-summary/ -H "Content-Type: application/x-www-form-urlencoded" -d "created_by_id=153&session_model_id=57"
+curl -X POST http://localhost:8000/api/api/discharge-summary/ \
+     -H "Content-Type: application/json" \
+     -d '{"created_by_id": 153, "session_model_id": 57}'

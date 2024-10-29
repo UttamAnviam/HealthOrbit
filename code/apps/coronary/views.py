@@ -423,19 +423,19 @@ class QueryView(View):
 
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class ReferralSummaryView(View):
     def post(self, request):
-        print("Incoming POST data:", request.POST)
-
-        # Retrieve doctor_id and patient_id from the POST data
-        doctor_id = request.POST.get('created_by_id')
-        patient_id = request.POST.get('session_model_id')
+        try:
+            data = json.loads(request.body)  # Parse JSON data from request body
+            doctor_id = data.get('created_by_id')
+            patient_id = data.get('session_model_id')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
 
         # Print the retrieved values for debugging
         print(doctor_id, '.-------', patient_id)
-        
+
         if not doctor_id or not patient_id:
             return JsonResponse({'error': 'Both doctor_id and patient_id are required.'}, status=400)
 
@@ -446,7 +446,7 @@ class ReferralSummaryView(View):
 
         # Check if the retrieved SOAP notes are meaningful
         if not self.is_meaningful(soap_notes):
-            return JsonResponse({'error': 'The provied  contain meaningful information.'}, status=400)
+            return JsonResponse({'error': 'The provided notes do not contain meaningful information.'}, status=400)
 
         # Generate the referral letter using Azure OpenAI
         prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off."
@@ -459,7 +459,6 @@ class ReferralSummaryView(View):
         return JsonResponse({'summary': referral_summary})
 
     def is_meaningful(self, text):
-        # Basic check for meaningful content; you can enhance this with more sophisticated checks if needed
         if len(text.split()) < 3 or all(word == 'you' for word in text.split()):
             return False
         return True
@@ -471,11 +470,9 @@ class ReferralSummaryView(View):
             result = cursor.fetchone()
             print(result, '-------result')
         if result:
-            return result[0]  # Return the transcription text
+            return result[0]
         else:
-            return None  # Return None if no transcription is found
-
-
+            return None
 
     def save_summary_to_db(self, doctor_id, patient_id, summary):
         with connections['mysql_db'].cursor() as cursor:
@@ -483,9 +480,8 @@ class ReferralSummaryView(View):
                 cursor.execute(
                     "INSERT INTO referral_summaries (created_by_id, session_model_id, summary) VALUES (%s, %s, %s)",
                     [doctor_id, patient_id, summary]
-                    
                 )
-                print([doctor_id, patient_id, summary],'-iiii')
+                print([doctor_id, patient_id, summary], '-iiii')
             except Exception as e:
                 return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
 
@@ -512,15 +508,17 @@ class ReferralSummaryView(View):
 
 
 
-# -----
+
 @method_decorator(csrf_exempt, name='dispatch')
 class Discharge_Summary(View):
     def post(self, request):
-        print("Incoming POST data:", request.POST)
-
-        # Retrieve doctor_id and patient_id from the POST data
-        doctor_id = request.POST.get('created_by_id')
-        patient_id = request.POST.get('session_model_id')
+        try:
+            # Parse JSON data from request body
+            data = json.loads(request.body)
+            doctor_id = data.get('created_by_id')
+            patient_id = data.get('session_model_id')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
 
         # Print the retrieved values for debugging
         print("Doctor ID:", doctor_id, "Patient ID:", patient_id)
@@ -602,7 +600,6 @@ class Discharge_Summary(View):
         except requests.exceptions.RequestException as e:
             print("Error querying Azure OpenAI:", e)
             return JsonResponse({'error': f'Azure OpenAI request failed: {str(e)}'}, status=500)
-
 
 
 
