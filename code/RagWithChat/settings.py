@@ -155,5 +155,6 @@ AZURE_OPENAI_API_KEY = "949ef1d4da1a44759286a068bb4aef87"  # Replace with your a
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':    
-         'RagWithChat.pagination.CustomPagination'
+         'RagWithChat.pagination.CustomPagination',
+        
 }

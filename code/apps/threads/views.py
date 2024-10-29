@@ -156,9 +156,15 @@ class ThreadViewSet(viewsets.ModelViewSet):
             threads = Thread.objects.filter(doctor_id=doctor_id)  # Filter by doctor_id if present
         else:
             threads = Thread.objects.all()  # Return all threads if no doctor_id is provided
+        page = self.paginate_queryset(threads)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+    
         serializer = self.get_serializer(threads, many=True)
         return Response(serializer.data)
-
+    
+    
 
     def retrieve(self, request, *args, **kwargs):
         """Get a Thread by ID"""

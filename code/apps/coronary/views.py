@@ -428,16 +428,19 @@ class ReferralSummaryView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)  # Parse JSON data from request body
-            doctor_id = data.get('created_by_id')
+            created_by_id = data.get('created_by_id')
             patient_id = data.get('session_model_id')
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
 
         # Print the retrieved values for debugging
-        print(doctor_id, '.-------', patient_id)
+        print(created_by_id, '.-------', patient_id)
 
-        if not doctor_id or not patient_id:
-            return JsonResponse({'error': 'Both doctor_id and patient_id are required.'}, status=400)
+        if not created_by_id:
+            return JsonResponse({'error': 'created_by_id required.'}, status=400)
+        
+        if not patient_id: 
+            return JsonResponse({'error': 'patient_id required.'}, status=400)
 
         # Retrieve SOAP notes for the patient
         soap_notes = self.get_soap_notes(patient_id)
@@ -449,12 +452,12 @@ class ReferralSummaryView(View):
             return JsonResponse({'error': 'The provided notes do not contain meaningful information.'}, status=400)
 
         # Generate the referral letter using Azure OpenAI
-        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off."
+        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off.     - Give me response in html template with proper fomatting"
 
         referral_summary = self.query_azure_openai(prompt)
 
         # Save the summary to the existing database table
-        self.save_summary_to_db(doctor_id, patient_id, referral_summary)
+        self.save_summary_to_db(created_by_id, patient_id, referral_summary)
 
         return JsonResponse({'summary': referral_summary})
 
@@ -474,14 +477,14 @@ class ReferralSummaryView(View):
         else:
             return None
 
-    def save_summary_to_db(self, doctor_id, patient_id, summary):
+    def save_summary_to_db(self, created_by_id, patient_id, summary):
         with connections['mysql_db'].cursor() as cursor:
             try:
                 cursor.execute(
                     "INSERT INTO referral_summaries (created_by_id, session_model_id, summary) VALUES (%s, %s, %s)",
-                    [doctor_id, patient_id, summary]
+                    [created_by_id, patient_id, summary]
                 )
-                print([doctor_id, patient_id, summary], '-iiii')
+                print([created_by_id, patient_id, summary], '-iiii')
             except Exception as e:
                 return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
 
@@ -515,19 +518,23 @@ class Discharge_Summary(View):
         try:
             # Parse JSON data from request body
             data = json.loads(request.body)
-            doctor_id = data.get('created_by_id')
-            patient_id = data.get('session_model_id')
+            created_by_id = data.get('created_by_id')
+            session_model_id = data.get('session_model_id')
+            
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
 
         # Print the retrieved values for debugging
-        print("Doctor ID:", doctor_id, "Patient ID:", patient_id)
+        print("Doctor ID:", created_by_id, "Patient ID:", session_model_id)
 
-        if not doctor_id or not patient_id:
-            return JsonResponse({'error': 'Both doctor_id and patient_id are required.'}, status=400)
+        if not created_by_id :
+            return JsonResponse({'error': 'created_by_id required.'}, status=400)
 
+        if not session_model_id: 
+            return JsonResponse({'error': 'session_model_id required.'}, status=400)
+            
         # Retrieve SOAP notes for the patient
-        soap_notes = self.get_soap_notes(patient_id)
+        soap_notes = self.get_soap_notes(session_model_id)
         if not soap_notes:
             return JsonResponse({'error': 'No SOAP notes found for the specified patient.'}, status=404)
 
@@ -557,6 +564,7 @@ class Discharge_Summary(View):
             "   - Wound Care: Include instructions for wound care, if applicable.\n"
             "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
             "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
+            "   - Give me response in html template with proper fomatting"
         )
 
         # Generate summary without saving to DB
@@ -571,10 +579,10 @@ class Discharge_Summary(View):
             return False
         return True
 
-    def get_soap_notes(self, patient_id):
-        print("Fetching SOAP notes for Patient ID:", patient_id)
+    def get_soap_notes(self, session_model_id):
+        print("Fetching SOAP notes for session_model_id ID:", session_model_id)
         with connections['mysql_db'].cursor() as cursor:
-            cursor.execute("SELECT transcription FROM transcriptions WHERE session_model_id = %s", [patient_id])
+            cursor.execute("SELECT transcription FROM transcriptions WHERE session_model_id = %s", [session_model_id])
             result = cursor.fetchone()
             print("SOAP notes result:", result)
         return result[0] if result else None
@@ -607,7 +615,6 @@ class Discharge_Summary(View):
 
 from rest_framework.decorators import api_view
 
-# Optional: Import Azure Speech SDK if you plan to use speech features
 try:
     import azure.cognitiveservices.speech as speechsdk
 except ImportError:
