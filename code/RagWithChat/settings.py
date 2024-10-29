@@ -86,8 +86,8 @@ DATABASES = {
     'mysql_db': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'health_orbit',
-        'USER': 'debian-sys-maint',
-        'PASSWORD': 'BnnUaJkxSZy3sReB',
+        'USER': 'root',
+        'PASSWORD': 'J$8wX@1pLz#9TfGq!',
         'HOST': 'localhost',
         'PORT': '3306',
     }
