@@ -452,7 +452,7 @@ class ReferralSummaryView(View):
             return JsonResponse({'error': 'The provided notes do not contain meaningful information.'}, status=400)
 
         # Generate the referral letter using Azure OpenAI
-        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off.     - Give me response in html template with proper fomatting"
+        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off. "
 
         referral_summary = self.query_azure_openai(prompt)
 
@@ -564,7 +564,7 @@ class Discharge_Summary(View):
             "   - Wound Care: Include instructions for wound care, if applicable.\n"
             "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
             "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
-            "   - Give me response in html template with proper fomatting"
+            
         )
 
         # Generate summary without saving to DB
