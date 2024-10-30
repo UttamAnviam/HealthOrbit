@@ -94,7 +94,7 @@ def query_pdf_content_in_chunks(combined_text, query):
     combined_response = "\n".join(responses)
     
     # Final query to Azure OpenAI to summarize combined responses
-    final_response = query_pdf_content(combined_response,  """"Prepare a detailed and factual coroner's report directly in HTML format, structured with the following sections:
+    final_response = query_pdf_content(combined_response,  """Prepare a detailed and factual coroner's report directly in HTML format, structured with the following sections:
 
 Author Details: Include the author’s full name, title (e.g., Bachelor of Medicine, rather than abbreviations), and role (e.g., Consultant Surgeon with [X] years of experience).
 
@@ -110,10 +110,7 @@ Conclusion and Recommendations: Provide a summary of the case outcome and any fu
 
 Signature Section: Include a section with the author’s signature and date.
 
-Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments."
-
-
-""")
+Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments.""")
     return final_response
 
 # Endpoint to upload files and ask a question
