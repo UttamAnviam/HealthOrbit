@@ -50,3 +50,7 @@ curl -X POST http://localhost:8000/api/threads/<thread_id>/continue-chat/ \
 -F "files=@/path/to/another/uploaded/file.pdf"
 
 
+curl -X POST http://localhost:8000/api/threads/58dd5514-496b-4942-b0e2-b58ef23e64a7/text-question-answer/ -H "Content-Type: application/json" -d '{
+    "question": "What are the next steps for treatment?",
+    "answer": "The patient should schedule a follow-up in two weeks to reassess treatment efficacy."
+}'

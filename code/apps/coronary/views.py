@@ -432,6 +432,7 @@ class ReferralSummaryView(View):
             "- Clearly defined paragraphs.\n"
             "- Proper formatting for readability, with paragraph breaks where needed.\n"
             "Do not include a heading or sign-off."
+            "Example => {html:{response}}"
         )
 
         referral_summary = self.query_azure_openai(prompt)
