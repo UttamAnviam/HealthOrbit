@@ -19,7 +19,7 @@ UPLOAD_DIR = "uploaded_files"
 # Ensure the upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-CORONER_REPORT_TEMPLATE = """"Prepare a detailed and factual coroner's report directly in HTML format, structured with the following sections:
+CORONER_REPORT_TEMPLATE = """Prepare a detailed and factual coroner's report directly in HTML format, structured with the following sections:
 
 Author Details: Include the author’s full name, title (e.g., Bachelor of Medicine, rather than abbreviations), and role (e.g., Consultant Surgeon with [X] years of experience).
 
@@ -35,7 +35,7 @@ Conclusion and Recommendations: Provide a summary of the case outcome and any fu
 
 Signature Section: Include a section with the author’s signature and date.
 
-Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments.""""
+Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments."""
 
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
