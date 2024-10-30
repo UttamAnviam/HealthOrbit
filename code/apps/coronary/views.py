@@ -94,97 +94,63 @@ def query_pdf_content_in_chunks(combined_text, query):
     combined_response = "\n".join(responses)
     
     # Final query to Azure OpenAI to summarize combined responses
-    final_response = query_pdf_content(combined_response,  """generate a final report.if asked to generate a coronere report , generate it in a detailed coronere  format with proper explanation 
-                                       General principles
-The report should be a detailed factual account, based on the
-medical records and your knowledge of the deceased.
-• Include your full name and qualifications (Bachelor of Medicine
-rather than MB).
-• Describe your status at the time you saw the patient (eg, GP
-registrar or consultant surgeon for 10 years).
-• Type your report on headed paper where possible using full,
-grammatically correct sentences.
-• Divide your report up into clear paragraphs. Numbering paragraphs
-may make it easier to refer to sections of your report in case you're
-asked to give evidence.
-What to include
-Be specific about your contact with the patient. For example, did
-you see the patient on the NHS or privately?
-Where appropriate, say if you saw the patient alone or with
-someone else during each consultation. Give the name and status
-of the other person (eg, spouse, mother, social worker).
-Style
-If you're ever
-asked to write a
-coroner's report,
-it's important to
-know what to
-include.
-21 July 2022
-The report should stand on its own
-Don't assume the reader has any knowledge of the case. Several
-people may have to read the report apart from the coroner and they
-may not have access to or be able to interpret the medical records.
-Write in the first person
-The reader should have a good idea of who did what, why, when, to
-whom, and how you know this occurred. Be precise and explicit.
-• Example: instead of writing, 'The patient was examined again later
-in the day' - it's more helpful to say, 'I remember asking my
-registrar, Dr Jane Smith, to examine the patient again later on the
-same day, which, according to the notes, she did at [time].'
-Concentrate on your observations and understanding
-Provide a detailed account of your interaction with the patient
-including the history you were given, what examination took place
-and what your clinical findings were. Include any relevant negative
-findings. Give an account of your differential diagnosis,
-management plan and any safety netting advice that was given.
-Avoid jargon or medical abbreviations
-Your report will be read by those with no medical knowledge. All
-medical terms are best written in full, avoiding abbreviations and
-technical language, if possible. If you have to use abbreviations or medical terms, explain these. If you mention a drug, give an idea of
-what type of drug it is and why it was prescribed. Give the full
-generic name, dosage and route of administration.
-• Example: many lay people might be familiar with abbreviating blood
-pressure to 'BP'. But 'SOB' for 'shortness of breath' is less common,
-and could be misinterpreted.
-Clinical notes
-Give a factual chronology of events as you saw them, referring
-to the clinical notes whenever you can. Describe each and every
-relevant consultation or phone contact in turn and include your
-working diagnosis or your differential diagnoses.
-Outline any hospital referrals, identifying the name of the relevant
-practitioner or consultant.
-The coroner will often require disclosure of the whole medical
-record. You should also ensure you have had access to the full
-medical record when preparing your report.
-The absence of an entry may be important. Just as negative
-findings are often important in clinical reports, with a coroner's
-report it's important to think about what's not included, as well as
-what is.
-• Example: you're reporting on a case of a child who has died. The
-pathologist finds healed fractures at post-mortem, but the notes
-don't indicate that the parents sought medical advice for these
-injuries. This raises the question of non-accidental injury and could
-have serious and immediate implications for surviving children in the family.
-Say what you found, but also what you looked for and failed to
-find. If you failed to put yourself in a position to make an adequate
-assessment, your evidence could be challenged. If your report
-clearly demonstrates that your history and examination were
-thorough, you are less likely to be called to explain your evidence at
-an inquest.
-Specify what the different details of your account are based
-on. This could be your memory, the contemporaneous notes you or
-others wrote, or your usual or normal practice. A coroner won't
-expect you to make notes of every last detail, or to remember every
-aspect of a consultation that at the time appeared to be routine. It's
-perfectly acceptable to quote from memory, making it clear that this
-is what you're doing or explaining what your normal practice would be under those circumstances.
-Identify any other clinician involved in the care of the
-deceased by their full name and professional status. Describe your
-understanding of what they did and the conclusions they reached
-based on your own knowledge or the clinical notes. You should not,
-however, comment on the adequacy or otherwise of their
-performance.""")
+    final_response = query_pdf_content(combined_response,  """"Prepare a coroner's report that is a factual, chronological, and detailed account of my professional interactions with the deceased based on available medical records and my own observations. Follow these guidelines:
+HTML Structure: The report should be divided into clear, well-organized sections with appropriate HTML headers (<h1>, <h2>, etc.) and paragraphs (<p>), styled for readability. Use CSS inline or in a <style> block within the <head> section to ensure a professional appearance.
+
+Author Details: Begin with my full name, professional title (e.g., Bachelor of Medicine) rather than abbreviations, and specific role (e.g., consultant surgeon for [X] years). State my status during each consultation with the patient.
+
+Case Information: For each interaction with the patient, specify whether it was under the NHS or private practice, and clarify if others were present (name and role, such as spouse or another healthcare provider).
+
+Style:
+
+Use clear, full sentences and divide sections with numbered paragraphs.
+Write in the first person to specify actions, timing, and reasoning.
+Avoid jargon and medical abbreviations where possible. If necessary, explain terms simply and fully, particularly any medical jargon.
+Clinical Chronology:
+
+Include a precise timeline of events, referring to clinical notes as available.
+Describe each relevant consultation, examination findings, differential diagnoses, management decisions, and any advice given.
+Note any absent observations or findings that were checked and found negative.
+Other Clinicians: Identify other clinicians involved by name and title. Summarize their roles and actions without assessing their performance.
+
+Source of Information:
+
+Specify whether details are from memory, contemporary notes, or standard practice.
+If referring to usual practices, clearly indicate this.
+Keep the language accessible for non-medical readers, focusing on factual details, clear reasoning, and a structured approach to the case timeline."
+
+Accessibility and Style:
+
+Ensure the HTML is easy to read, avoiding jargon or unexplained abbreviations.
+Where necessary, explain technical terms in plain language.
+Create the final coroner's report in HTML, with inline CSS for styling and formatted sections to enhance readability."
+
+
+ Generate the discharge summary using Azure OpenAI
+        prompt = (
+            "Generate a detailed report for a patient's admission and discharge, including the following sections:\n\n"
+            "1. Admission Details\n"
+            "   - Chief Complaint: Provide a brief description of the presenting issue.\n"
+            "   - Diagnosis: State the final diagnosis or impression.\n\n"
+            "2. Treatment Provided\n"
+            "   - Interventions: List the treatments and interventions provided in the Emergency Department (ED).\n"
+            "   - Medications Administered: Detail any medications given, including dosages.\n\n"
+            "3. Results of Investigations\n"
+            "   - Pathology: Summarize key results from blood tests, urine tests, etc. (if applicable).\n"
+            "   - Imaging: Include findings from X-rays, CT scans, MRIs, etc. (if applicable).\n\n"
+            "4. Patient's Condition at Discharge\n"
+            "   - General condition at the time of discharge.\n"
+            "   - Vital Signs: Provide the latest recorded vital signs.\n\n"
+            "5. Discharge Instructions\n"
+            "   - Medications: List prescriptions given at discharge, with dosages and instructions.\n"
+            "   - Activity Level: Recommend the level of activity (if applicable).\n"
+            "   - Dietary Changes: Note any advised dietary changes or restrictions (if applicable).\n"
+            "   - Wound Care: Include instructions for wound care, if applicable.\n"
+            "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
+            "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
+            "   - Give me response in html template with proper fomatting"
+        )
+""")
     return final_response
 
 # Endpoint to upload files and ask a question
@@ -452,8 +418,21 @@ class ReferralSummaryView(View):
         if not self.is_meaningful(soap_notes):
             return JsonResponse({'error': 'The provided notes do not contain meaningful information.'}, status=400)
 
-        # Generate the referral letter using Azure OpenAI
-        prompt = f"You are a professional medical assistant. Your task is to generate a formal referral letter to a general physician. The letter should be clear, concise, and include all necessary details for the physician to understand the patient's condition and needs.\n\ntranscription: {soap_notes}\n\nBased on the above transcription, please generate a professional referral letter, ensuring it includes:\n\nA clear explanation of the patient's condition, referencing relevant details from the transcription.\nA polite request for further evaluation, treatment, or investigation from the general physician.\nAny pertinent information regarding ongoing or past treatment.\n\nDon't include the heading and the sign-off. "
+       # Generate the referral letter using Azure OpenAI
+        prompt = (
+            "You are a skilled medical assistant. Your task is to draft a professional referral letter to a general physician "
+            "based on the transcription of SOAP notes provided. The letter should be formal, concise, and contain essential details "
+            "for the physician to understand the patient’s current condition and clinical needs.\n\n"
+            f"transcription: {soap_notes}\n\n"
+            "Instructions for the referral letter:\n\n"
+            "Patient's Condition: Provide a brief, clear summary of the patient's current condition, referencing key details from the transcription.\n"
+            "Referral Purpose: Include a polite request for further evaluation, treatment, or necessary investigations to support the patient's care.\n"
+            "Relevant Treatment History: Mention any pertinent ongoing or past treatments that the physician should consider.\n\n"
+            "Please respond in an HTML format with appropriate structure, including:\n\n"
+            "- Clearly defined paragraphs.\n"
+            "- Proper formatting for readability, with paragraph breaks where needed.\n"
+            "Do not include a heading or sign-off."
+        )
 
         referral_summary = self.query_azure_openai(prompt)
 
@@ -461,6 +440,7 @@ class ReferralSummaryView(View):
         self.save_summary_to_db(created_by_id, patient_id, referral_summary)
 
         return JsonResponse({'summary': referral_summary})
+
 
     def is_meaningful(self, text):
         if len(text.split()) < 3 or all(word == 'you' for word in text.split()):
@@ -489,7 +469,7 @@ class ReferralSummaryView(View):
             except Exception as e:
                 return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
 
-    def query_pdf_content(chunk_text, query, temperature=0.5):
+    def query_pdf_content(chunk_text, query, temperature=0.01):
         headers = {
             "Content-Type": "application/json",
             "api-key": settings.AZURE_OPENAI_API_KEY,
@@ -556,30 +536,34 @@ class Discharge_Summary(View):
 
         # Generate the discharge summary using Azure OpenAI
         prompt = (
-            "Generate a detailed report for a patient's admission and discharge, including the following sections:\n\n"
-            "1. Admission Details\n"
-            "   - Chief Complaint: Provide a brief description of the presenting issue.\n"
-            "   - Diagnosis: State the final diagnosis or impression.\n\n"
-            "2. Treatment Provided\n"
-            "   - Interventions: List the treatments and interventions provided in the Emergency Department (ED).\n"
-            "   - Medications Administered: Detail any medications given, including dosages.\n\n"
-            "3. Results of Investigations\n"
-            "   - Pathology: Summarize key results from blood tests, urine tests, etc. (if applicable).\n"
-            "   - Imaging: Include findings from X-rays, CT scans, MRIs, etc. (if applicable).\n\n"
-            "4. Patient's Condition at Discharge\n"
-            "   - General condition at the time of discharge.\n"
-            "   - Vital Signs: Provide the latest recorded vital signs.\n\n"
-            "5. Discharge Instructions\n"
-            "   - Medications: List prescriptions given at discharge, with dosages and instructions.\n"
-            "   - Activity Level: Recommend the level of activity (if applicable).\n"
-            "   - Dietary Changes: Note any advised dietary changes or restrictions (if applicable).\n"
-            "   - Wound Care: Include instructions for wound care, if applicable.\n"
-            "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
-            "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
-            # "   - Give response in HTML Template with in object like below don't include all response only discharge summary"
-            # "   - Example => {html:""}"
-            
-        )
+        "Generate a detailed report for a patient's admission and discharge, including the following sections:\n\n"
+        "1. Admission Details\n"
+        "   - Chief Complaint: Provide a brief description of the presenting issue.\n"
+        "   - Diagnosis: State the final diagnosis or impression.\n\n"
+        
+        "2. Treatment Provided\n"
+        "   - Interventions: List the treatments and interventions provided in the Emergency Department (ED).\n"
+        "   - Medications Administered: Detail any medications given, including dosages.\n\n"
+        
+        "3. Results of Investigations\n"
+        "   - Pathology: Summarize key results from blood tests, urine tests, etc. (if applicable).\n"
+        "   - Imaging: Include findings from X-rays, CT scans, MRIs, etc. (if applicable).\n\n"
+        
+        "4. Patient's Condition at Discharge\n"
+        "   - General condition at the time of discharge.\n"
+        "   - Vital Signs: Provide the latest recorded vital signs.\n\n"
+        
+        "5. Discharge Instructions\n"
+        "   - Medications: List prescriptions given at discharge, with dosages and instructions.\n"
+        "   - Activity Level: Recommend the level of activity (if applicable).\n"
+        "   - Dietary Changes: Note any advised dietary changes or restrictions (if applicable).\n"
+        "   - Wound Care: Include instructions for wound care, if applicable.\n"
+        "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
+        "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable).\n\n"
+        
+        "Generate this summary as an HTML template with clear formatting, including headings and bullet points as appropriate. Respond in the format: {html: \"<HTML content here>\"}."
+    )
+
 
         # Generate summary without saving to DB
         discharge_summary = self.query_azure_openai(prompt)
@@ -609,6 +593,7 @@ class Discharge_Summary(View):
         
         data = {
             "model": "gpt-4o",  # Specify your model here
+            "temperature": 0.01,
             "messages": [
                 {"role": "system", "content": "You are a helpful medical assistant."},
                 {"role": "user", "content": prompt}

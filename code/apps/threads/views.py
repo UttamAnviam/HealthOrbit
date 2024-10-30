@@ -257,6 +257,24 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
 
 
+    def text_question_answer(self, request, *args, **kwargs):
+        """Add a Text-Based Question and Answer to an Existing Thread"""
+        thread_id = kwargs.get('pk')
+        question = request.data.get('question')
+        answer = request.data.get('answer')
+
+        try:
+            thread = self.get_object()
+        except Thread.DoesNotExist:
+            return Response({"error": "Thread not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Save the question and answer to the thread's messages
+        thread.messages.append({"question": question, "answer": answer})
+        thread.save()
+
+        return Response({"message": "Question and answer added successfully!"}, status=status.HTTP_200_OK)
+
+
 
     def extract_text_from_pdf(self, file_path):
         pdf_text = ""

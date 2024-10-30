@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'health_orbit',
         'USER': 'root',
         'PASSWORD': 'J$8wX@1pLz#9TfGq!',
-        'HOST': '54.214.125.176',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }
