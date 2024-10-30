@@ -126,30 +126,6 @@ Where necessary, explain technical terms in plain language.
 Create the final coroner's report in HTML, with inline CSS for styling and formatted sections to enhance readability."
 
 
- Generate the discharge summary using Azure OpenAI
-        prompt = (
-            "Generate a detailed report for a patient's admission and discharge, including the following sections:\n\n"
-            "1. Admission Details\n"
-            "   - Chief Complaint: Provide a brief description of the presenting issue.\n"
-            "   - Diagnosis: State the final diagnosis or impression.\n\n"
-            "2. Treatment Provided\n"
-            "   - Interventions: List the treatments and interventions provided in the Emergency Department (ED).\n"
-            "   - Medications Administered: Detail any medications given, including dosages.\n\n"
-            "3. Results of Investigations\n"
-            "   - Pathology: Summarize key results from blood tests, urine tests, etc. (if applicable).\n"
-            "   - Imaging: Include findings from X-rays, CT scans, MRIs, etc. (if applicable).\n\n"
-            "4. Patient's Condition at Discharge\n"
-            "   - General condition at the time of discharge.\n"
-            "   - Vital Signs: Provide the latest recorded vital signs.\n\n"
-            "5. Discharge Instructions\n"
-            "   - Medications: List prescriptions given at discharge, with dosages and instructions.\n"
-            "   - Activity Level: Recommend the level of activity (if applicable).\n"
-            "   - Dietary Changes: Note any advised dietary changes or restrictions (if applicable).\n"
-            "   - Wound Care: Include instructions for wound care, if applicable.\n"
-            "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
-            "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
-            "   - Give me response in html template with proper fomatting"
-        )
 """)
     return final_response
 
