@@ -470,7 +470,7 @@ class ReferralSummaryView(View):
             except Exception as e:
                 return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
 
-    def query_pdf_content(chunk_text, query, temperature=0.01):
+    def query_azure_openai(chunk_text, query, temperature=0.01):
         headers = {
             "Content-Type": "application/json",
             "api-key": settings.AZURE_OPENAI_API_KEY,
