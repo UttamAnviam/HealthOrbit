@@ -243,6 +243,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 combined_text += self.extract_text_from_txt(file_location) + "\n"
 
         # Append the combined text to the existing content of the thread
+        print(combined_text)
         thread.content += "\n" + combined_text
 
         # Query the Azure OpenAI API
@@ -285,7 +286,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
             "messages": [
                 {
                     "role": "user",
-                    "content": f"Based on the following document: {combined_text}, answer this question: {query}."
+                    "content": f"Based on the following document: {combined_text}, answer this question: {query}. Give the response in HTML format"
                 }
             ]
         }

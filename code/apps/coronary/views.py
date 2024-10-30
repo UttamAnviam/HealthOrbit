@@ -58,7 +58,7 @@ def split_text_into_chunks(text, chunk_size=1500):
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 # Function to query Azure OpenAI API
-def query_pdf_content(chunk_text, query):
+def query_pdf_content(chunk_text, query,temperature=0.01):
     headers = {
         "Content-Type": "application/json",
         "api-key": settings.AZURE_OPENAI_API_KEY,
@@ -70,7 +70,8 @@ def query_pdf_content(chunk_text, query):
                 "role": "user",
                 "content": f"Analyze the following document: {chunk_text}. Based on this text, answer the question: {query}."
             }
-        ]
+        ],
+         "temperature": temperature
     }
 
     try:
@@ -488,25 +489,36 @@ class ReferralSummaryView(View):
             except Exception as e:
                 return JsonResponse({'error': f'Database insertion failed: {str(e)}'}, status=500)
 
-    def query_azure_openai(self, prompt):
+    def query_pdf_content(chunk_text, query, temperature=0.5):
         headers = {
             "Content-Type": "application/json",
-            "api-key": AZURE_OPENAI_API_KEY,
+            "api-key": settings.AZURE_OPENAI_API_KEY,
         }
         
-        data = {
+        body = {
+            "temperature": temperature,
             "messages": [
-                {"role": "system", "content": "You are a helpful medical assistant."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "user",
+                    "content": (
+                        f"Analyze the following document: {chunk_text}. "
+                        f"Based on this text, answer the question: {query}. "
+                        "Please format your response in HTML."
+                    )
+                }
             ]
         }
-
-        try:
-            response = requests.post(AZURE_OPENAI_ENDPOINT, headers=headers, json=data)
-            response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"].strip()
-        except Exception as e:
-            return str(e)
+        
+        response = requests.post(
+            settings.AZURE_OPENAI_ENDPOINT,
+            headers=headers,
+            json=body
+        )
+        
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            return {"error": f"Request failed with status code {response.status_code}"}
 
 
 
@@ -564,12 +576,14 @@ class Discharge_Summary(View):
             "   - Wound Care: Include instructions for wound care, if applicable.\n"
             "   - Signs & Symptoms: Highlight any signs and symptoms to watch for that would necessitate a return to the hospital or further medical attention (if applicable).\n"
             "   - Follow-Up: Detail any scheduled follow-up appointments (if applicable)."
+            # "   - Give response in HTML Template with in object like below don't include all response only discharge summary"
+            # "   - Example => {html:""}"
             
         )
 
         # Generate summary without saving to DB
         discharge_summary = self.query_azure_openai(prompt)
-
+        print(discharge_summary)
         # Return the summary in the response
         return JsonResponse({'summary': discharge_summary})
 
