@@ -388,11 +388,11 @@ class ReferralSummaryView(View):
             "Patient's Condition: Provide a brief, clear summary of the patient's current condition, referencing key details from the transcription.\n"
             "Referral Purpose: Include a polite request for further evaluation, treatment, or necessary investigations to support the patient's care.\n"
             "Relevant Treatment History: Mention any pertinent ongoing or past treatments that the physician should consider.\n\n"
-            "The response should follow a well-organized, readable structure without using HTML tags. Please format the letter with:\n\n"
+            "Please respond in an  HTML format with appropriate structure, including:\n\n"
             "- Clearly defined paragraphs.\n"
-            "- Appropriate line breaks between sections.\n"
-            "- Proper structure for readability, following a natural flow, without using HTML tags.\n\n"
+            "- Proper formatting for readability, with paragraph breaks where needed.\n"
             "Do not include a heading or sign-off."
+            " For response create an object like below "
         )
 
         referral_summary = self.query_azure_openai(prompt)
