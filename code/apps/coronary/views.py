@@ -94,36 +94,23 @@ def query_pdf_content_in_chunks(combined_text, query):
     combined_response = "\n".join(responses)
     
     # Final query to Azure OpenAI to summarize combined responses
-    final_response = query_pdf_content(combined_response,  """"Prepare a coroner's report that is a factual, chronological, and detailed account of my professional interactions with the deceased based on available medical records and my own observations. Follow these guidelines:
-HTML Structure: The report should be divided into clear, well-organized sections with appropriate HTML headers (<h1>, <h2>, etc.) and paragraphs (<p>), styled for readability. Use CSS inline or in a <style> block within the <head> section to ensure a professional appearance.
+    final_response = query_pdf_content(combined_response,  """"Prepare a detailed and factual coroner's report directly in HTML format, structured with the following sections:
 
-Author Details: Begin with my full name, professional title (e.g., Bachelor of Medicine) rather than abbreviations, and specific role (e.g., consultant surgeon for [X] years). State my status during each consultation with the patient.
+Author Details: Include the author’s full name, title (e.g., Bachelor of Medicine, rather than abbreviations), and role (e.g., Consultant Surgeon with [X] years of experience).
 
-Case Information: For each interaction with the patient, specify whether it was under the NHS or private practice, and clarify if others were present (name and role, such as spouse or another healthcare provider).
+Case Information: Provide the patient’s details, including name, age, gender, consultation type (e.g., NHS), and any others present during consultations (e.g., spouse, social worker).
 
-Style:
+Clinical Chronology: Create a structured timeline detailing each consultation. Include dates, symptoms reported by the patient, examinations conducted, clinical findings, differential diagnoses, and any advice or referrals given.
 
-Use clear, full sentences and divide sections with numbered paragraphs.
-Write in the first person to specify actions, timing, and reasoning.
-Avoid jargon and medical abbreviations where possible. If necessary, explain terms simply and fully, particularly any medical jargon.
-Clinical Chronology:
+Other Clinicians Involved: List any other clinicians, their roles, and summarize their contributions to the case without commenting on their performance.
 
-Include a precise timeline of events, referring to clinical notes as available.
-Describe each relevant consultation, examination findings, differential diagnoses, management decisions, and any advice given.
-Note any absent observations or findings that were checked and found negative.
-Other Clinicians: Identify other clinicians involved by name and title. Summarize their roles and actions without assessing their performance.
+Source of Information: Specify whether details are from contemporaneous clinical notes, direct observations, or standard practices.
 
-Source of Information:
+Conclusion and Recommendations: Provide a summary of the case outcome and any further recommended investigations or actions.
 
-Specify whether details are from memory, contemporary notes, or standard practice.
-If referring to usual practices, clearly indicate this.
-Keep the language accessible for non-medical readers, focusing on factual details, clear reasoning, and a structured approach to the case timeline."
+Signature Section: Include a section with the author’s signature and date.
 
-Accessibility and Style:
-
-Ensure the HTML is easy to read, avoiding jargon or unexplained abbreviations.
-Where necessary, explain technical terms in plain language.
-Create the final coroner's report in HTML, with inline CSS for styling and formatted sections to enhance readability."
+Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments."
 
 
 """)
