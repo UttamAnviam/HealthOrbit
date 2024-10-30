@@ -419,7 +419,7 @@ class ReferralSummaryView(View):
             return JsonResponse({'error': 'The provided notes do not contain meaningful information.'}, status=400)
 
        # Generate the referral letter using Azure OpenAI
-        prompt = (
+        prompt = (""""
             "You are a skilled medical assistant. Your task is to draft a professional referral letter to a general physician "
             "based on the transcription of SOAP notes provided. The letter should be formal, concise, and contain essential details "
             "for the physician to understand the patient’s current condition and clinical needs.\n\n"
@@ -428,11 +428,13 @@ class ReferralSummaryView(View):
             "Patient's Condition: Provide a brief, clear summary of the patient's current condition, referencing key details from the transcription.\n"
             "Referral Purpose: Include a polite request for further evaluation, treatment, or necessary investigations to support the patient's care.\n"
             "Relevant Treatment History: Mention any pertinent ongoing or past treatments that the physician should consider.\n\n"
-            "Please respond in an HTML format with appropriate structure, including:\n\n"
+            "Please respond in an  HTML format with appropriate structure, including:\n\n"
             "- Clearly defined paragraphs.\n"
             "- Proper formatting for readability, with paragraph breaks where needed.\n"
             "Do not include a heading or sign-off."
-            "Example => {html:{response}}"
+            " For response create an object like below "
+            "{"html":"raw_html_template"}"
+            """
         )
 
         referral_summary = self.query_azure_openai(prompt)
