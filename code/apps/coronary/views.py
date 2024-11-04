@@ -110,7 +110,10 @@ Conclusion and Recommendations: Provide a summary of the case outcome and any fu
 
 Signature Section: Include a section with the author’s signature and date.
 
-Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments.""")
+Structure the HTML using headers (<h1>, <h2>) for section titles and paragraphs (<p>) for content. Style it with inline CSS for readability, with clear section divisions and a clean layout. Ensure the report contains only the structured HTML content, with no additional explanations or comments."
+
+
+""")
     return final_response
 
 # Endpoint to upload files and ask a question
@@ -380,19 +383,27 @@ class ReferralSummaryView(View):
 
        # Generate the referral letter using Azure OpenAI
         prompt = (
-            "You are a skilled medical assistant. Your task is to draft a professional referral letter to a general physician "
-            "based on the transcription of SOAP notes provided. The letter should be formal, concise, and contain essential details "
-            "for the physician to understand the patient’s current condition and clinical needs.\n\n"
-            f"transcription: {soap_notes}\n\n"
-            "Instructions for the referral letter:\n\n"
-            "Patient's Condition: Provide a brief, clear summary of the patient's current condition, referencing key details from the transcription.\n"
-            "Referral Purpose: Include a polite request for further evaluation, treatment, or necessary investigations to support the patient's care.\n"
-            "Relevant Treatment History: Mention any pertinent ongoing or past treatments that the physician should consider.\n\n"
-            "Please respond in an  HTML format with appropriate structure, including:\n\n"
-            "- Clearly defined paragraphs.\n"
-            "- Proper formatting for readability, with paragraph breaks where needed.\n"
-            "Do not include a heading or sign-off."
-            " For response create an object like below "
+
+           """Generate a detailed medical consultation summary for a patient with chronic back pain using the following format and structure:
+
+Begin with Date at the top.
+Address the summary as Private and Confidential and include the patient's full name and address details.
+Address the letter to the patient with 'Dear [Patient's Last Name]'.
+Include a Re: section with the patient's full name, and NHS number (or equivalent identifier).
+Summarize the Diagnosis concisely (e.g., 'Chronic lower back pain').
+Provide a Plan summary highlighting the main elements of the proposed treatment plan.
+Include a Consultation Summary section, beginning with: 'It was a pleasure to see you in my clinic today. You mentioned that…' and describe the patient's reported symptoms, history, and any lifestyle or work factors that impact their care.
+In Medical History Section, detail relevant previous treatments, medications, and any patient-reported effects.
+Include an optional Personal Context section for information on personal circumstances or upcoming plans relevant to the treatment.
+In Examination Findings, list key physical examination results, such as mobility limitations or palpation pain, and any relevant values.
+Add Investigations, summarizing any diagnostic results (e.g., imaging) or notes on any decisions not to perform further investigations.
+Outline the Management Plan:
+Explain main findings to the patient and the focus on sustainable, affordable management options.
+Summarize any discussed treatments (e.g., alternative therapies like yoga, cost-friendly medications).
+Include any additional recommendations, such as using insurance options for coverage review.
+Close with a Kind regards message from the consultant, followed by full name, titles, and position. Also, add 'Dictated and Electronically Signed By:' with the consultant’s details.
+End with a CC: Private and Confidential line.
+Ensure the language is professional, empathetic, and clear, focusing on the patient's needs and preferences."""
         )
 
         referral_summary = self.query_azure_openai(prompt)
